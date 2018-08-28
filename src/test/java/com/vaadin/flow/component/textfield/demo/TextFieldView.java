@@ -16,10 +16,9 @@
 package com.vaadin.flow.component.textfield.demo;
 
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.GeneratedVaadinTextField;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.textfield.TextFieldVariant;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.demo.DemoView;
 import com.vaadin.flow.router.Route;
 
@@ -31,85 +30,63 @@ import com.vaadin.flow.router.Route;
 @Route("vaadin-text-field")
 public class TextFieldView extends DemoView {
 
+    private class ViewModel {
+        public ViewModel(String val) {
+            setValue(val);
+        }
+
+        private String value;
+
+        public String getValue() {
+            return this.value;
+        }
+
+        public void setValue(String val) {
+            this.value = val;
+        }
+    }
+
+    private ViewModel model;
+    private Binder<ViewModel> b;
+
     @Override
     public void initView() {
-        addBasicFeatures();
-        addNumberFields();
-        addDisabledField();
-        addVariantsFeature();
+        addProblemCard();
+        addWorkingCard();
     }
 
-    private void addVariantsFeature() {
-        // begin-source-example
-        // source-example-heading: Theme variants usage
-        TextField textField = new TextField();
-        textField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
-        // end-source-example
-
-        addVariantsDemo(TextField::new,
-                GeneratedVaadinTextField::addThemeVariants,
-                GeneratedVaadinTextField::removeThemeVariants,
-                TextFieldVariant::getVariantName, TextFieldVariant.LUMO_SMALL);
-    }
-
-    private void addBasicFeatures() {
+    private void addProblemCard() {
         Div message = new Div();
 
         // begin-source-example
-        // source-example-heading: Basic text field
+        // source-example-heading: Demo of problem
+        model = new ViewModel("initial value");
+        b = new Binder<ViewModel>();
+
         TextField textField = new TextField();
-        textField.setLabel("Text field label");
-        textField.setPlaceholder("placeholder text");
+        textField.addValueChangeListener(event -> message.setText(
+                String.format("Text field value changed from '%s' to '%s'",
+                        event.getOldValue(), event.getValue())));
+
+        b.forField(textField).asRequired().bind(ViewModel::getValue, ViewModel::setValue);
+        b.setBean(model);
+        // end-source-example
+
+        addCard("Demo of problem", textField, message);
+    }
+
+    private void addWorkingCard() {
+        Div message = new Div();
+
+        // begin-source-example
+        // source-example-heading: Working correctly without bindings
+        TextField textField = new TextField();
+        textField.setRequired(true);
         textField.addValueChangeListener(event -> message.setText(
                 String.format("Text field value changed from '%s' to '%s'",
                         event.getOldValue(), event.getValue())));
         // end-source-example
 
-        textField.setId("text-field-with-value-change-listener");
-        message.setId("text-field-value");
-
-        addCard("Basic text field", textField,
-                new ValueChangeModeButtonProvider(textField)
-                        .getToggleValueSyncButton(),
-                message);
-    }
-
-    private void addNumberFields() {
-        // begin-source-example
-        // source-example-heading: Number fields
-        TextField dollarField = new TextField("Dollars");
-        dollarField.setPattern("[0-9]*");
-        dollarField.setPreventInvalidInput(true);
-        dollarField.setPrefixComponent(new Span("$"));
-
-        TextField euroField = new TextField("Euros");
-        euroField.setPattern("[0-9]*");
-        euroField.setPreventInvalidInput(true);
-        euroField.setSuffixComponent(new Span("€"));
-        // end-source-example
-
-        dollarField.setId("dollar-field");
-        euroField.setId("euro-field");
-
-        addCard("Number fields", dollarField, euroField);
-    }
-
-    private void addDisabledField() {
-
-        // begin-source-example
-        // source-example-heading: Disabled text field
-        TextField textField = new TextField();
-        textField.setLabel("Text field label");
-        textField.setPlaceholder("placeholder text");
-        textField.setEnabled(false);
-        // end-source-example
-
-        textField.setId("disabled-text-field");
-        Div message = new Div();
-        message.setId("disabled-text-field-message");
-        textField.addValueChangeListener(
-                change -> message.setText("Value changed"));
-
-        addCard("Disabled text field", textField, message);
+        addCard("Working correctly without bindings", textField, message);
     }
 }
